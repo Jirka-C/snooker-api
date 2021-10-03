@@ -32,7 +32,7 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
 
 	public function renderDefault(): void
 	{
-        $query = $this->database->table('games');
+        $query = $this->database->table('games')->order('date DESC');
         $games = [];
         $i = 0;
 
@@ -52,24 +52,37 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
 
         if($httpResponse->getMethod() === "POST"){
             $game = Json::decode($httpResponse->getRawBody());
-            Debugger::log(Json::encode($game->playerOne->breaks));
 
             if($id){
+                $gameRow = $this->database->table('games')->get($id);
+                $gameRow->update([
+                    "player1" => $game->playerOne->name,
+                    "score1" => $game->playerOne->score,
+                    "frames1" => $game->playerOne->frames,
+                    "breaks1" => Json::encode($game->playerOne->breaks),
+                    "player2" => $game->playerTwo->name,
+                    "score2" => $game->playerTwo->score,
+                    "frames2" => $game->playerTwo->frames,
+                    "breaks2" => Json::encode($game->playerTwo->breaks),
+                    "date" => date("Y-m-d H:i:m")                    
+                ]);
+
+                $this->sendJson(["Message"=>"Aktualizace hry"]);
             } else{
-                // $this->database->table('games')->insert([
-                //     "player1" => $game->playerOne->name,
-                //     "score1" => $game->playerOne->score,
-                //     "frames1" => $game->playerOne->frames,
-                //     "breaks1" => Json::endcode($game->playerOne->breaks),
-                //     "player2" => $game->playerTwo->name,
-                //     "score2" => $game->playerTwo->score,
-                //     "frames2" => $game->playerTwo->frames,
-                //     "breaks2" => Json::encode($game->playerTwo->breaks),
-                //     "date" => date("Y-m-d H:i:m")
-                // ]);
+                $this->database->table('games')->insert([
+                    "player1" => $game->playerOne->name,
+                    "score1" => $game->playerOne->score,
+                    "frames1" => $game->playerOne->frames,
+                    "breaks1" => Json::encode($game->playerOne->breaks),
+                    "player2" => $game->playerTwo->name,
+                    "score2" => $game->playerTwo->score,
+                    "frames2" => $game->playerTwo->frames,
+                    "breaks2" => Json::encode($game->playerTwo->breaks),
+                    "date" => date("Y-m-d H:i:m")
+                ]);
+
+                $this->sendJson(["Message"=>"Nová hra uložena"]);
             }
-            
-            $this->sendJson("VSE OK");
         }
 
         $query = $this->database->table('games')->get($id);
