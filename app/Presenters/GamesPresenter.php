@@ -10,6 +10,7 @@ use Tracy\Debugger;
 
 final class GamesPresenter extends Nette\Application\UI\Presenter
 {
+    const GAMES_OVERVIEW_LIMIT = 40;
     private Nette\Database\Explorer $database;
     private Nette\Http\Response $response;
     private Nette\Http\Request $request;
@@ -43,6 +44,23 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
             $i++;
         }
 
+		$this->sendJson($games);
+	}
+
+	public function actionOverview(int $id = 0): void
+	{
+        $query = $this->database->table('games')->limit(self::GAMES_OVERVIEW_LIMIT, self::GAMES_OVERVIEW_LIMIT * $id)->order('date DESC');
+        $games = [];
+        $i = 0;
+
+        foreach ($query as $gamesResult) {
+            foreach ($gamesResult as $key => $value) {
+                $games[$i][$key] = $value;
+            }
+            $i++;
+        }
+
+        bdump($games);
 		$this->sendJson($games);
 	}
 
