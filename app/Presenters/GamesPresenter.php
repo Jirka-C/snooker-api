@@ -12,6 +12,8 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
 {
     const GAMES_OVERVIEW_LIMIT = 20;
     private Nette\Database\Explorer $database;
+    private Nette\Http\Response $response;
+    private Nette\Http\Request $request;
 
 	public function __construct(Nette\Database\Explorer $database,  Nette\Http\Response $response, Nette\Http\Request $request)
 	{
