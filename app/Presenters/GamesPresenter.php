@@ -12,8 +12,6 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
 {
     const GAMES_OVERVIEW_LIMIT = 20;
     private Nette\Database\Explorer $database;
-    private Nette\Http\Response $response;
-    private Nette\Http\Request $request;
 
 	public function __construct(Nette\Database\Explorer $database,  Nette\Http\Response $response, Nette\Http\Request $request)
 	{
@@ -33,28 +31,12 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
 
 	public function renderDefault(): void
 	{
-        $query = $this->database->table('games')->order('date DESC');
-        $games = [];
-        $i = 0;
-
-        foreach ($query as $gamesResult) {
-            foreach ($gamesResult as $key => $value) {
-                $games[$i][$key] = $value;
-            }
-            $i++;
-        }
-
-		$this->sendJson($games);
+		$this->sendJson(["message"=> "Snooker is the game"]);
 	}
-
-    public function actionTotalrows(): void
-    {
-        $totalRows = $this->database->table('games')->count('*');
-        $this->sendJson($totalRows);
-    }
 
 	public function actionOverview(int $id = 0): void
 	{
+        $totalRows = $this->database->table('games')->count('*');
         $query = $this->database->table('games')->limit(self::GAMES_OVERVIEW_LIMIT, self::GAMES_OVERVIEW_LIMIT * $id)->order('date DESC');
         $games = [];
         $i = 0;
@@ -66,7 +48,11 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
             $i++;
         }
 
-		$this->sendJson($games);
+		$this->sendJson([
+            'status' => 1,
+            'totalRows' => $totalRows,
+            'games' => $games
+        ]);
 	}
 
     public function actionGame(int $id = null): void
@@ -90,9 +76,12 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
                     "date" => date("Y-m-d H:i:m")                    
                 ]);
 
-                $this->sendJson(["Message"=>"Aktualizace hry"]);
+                $this->sendJson([
+                    "status" => 1,
+                    "newId" => null
+                ]);
             } else{
-                $this->database->table('games')->insert([
+                $row = $this->database->table('games')->insert([
                     "player1" => $game->playerOne->name,
                     "score1" => $game->playerOne->score,
                     "frames1" => $game->playerOne->frames,
@@ -104,15 +93,21 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
                     "date" => date("Y-m-d H:i:m")
                 ]);
 
-                $this->sendJson(["Message"=>"Nová hra uložena"]);
+                $this->sendJson([
+                    "status" => 1,
+                    "newId" => $row->id
+                ]);
             }
         }
 
         $query = $this->database->table('games')->get($id);
-        $game = [];
+        $game = null;
 
         if (!$query) {
-            $this->sendJson($game);
+            $this->sendJson([
+                'status' => 404,
+                'game' => null
+            ]);
         }
     
         foreach ($query as $key => $value) {
@@ -122,6 +117,9 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
             $game[$key] = $value;
         }
 
-        $this->sendJson($game);
+        $this->sendJson([
+            'status' => 1,
+            'game' => $game
+        ]);
     }
 }
