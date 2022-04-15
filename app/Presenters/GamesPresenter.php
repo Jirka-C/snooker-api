@@ -6,6 +6,7 @@ namespace App\Presenters;
 
 use Nette;
 use Nette\Utils\Json;
+use Nette\Security\Passwords;
 use Tracy\Debugger;
 
 final class GamesPresenter extends Nette\Application\UI\Presenter
@@ -14,19 +15,25 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
     private Nette\Database\Explorer $database;
     private Nette\Http\Response $response;
     private Nette\Http\Request $request;
+    private Nette\Security\User $user;
 
-	public function __construct(Nette\Database\Explorer $database,  Nette\Http\Response $response, Nette\Http\Request $request)
+	/** @var Passwords */
+	private $passwords;    
+
+	public function __construct(Nette\Database\Explorer $database,  Nette\Http\Response $response, Nette\Http\Request $request, Nette\Security\User $user, Passwords $passwords)
 	{
 		$this->database = $database;
 		$this->response = $response;
 		$this->request = $request;
+        $this->user = $user;
+        $this->passwords = $passwords;
 	}
 
     protected function startup()
     {
         parent::startup();
 
-        $this->getHttpResponse()->setHeader('Access-Control-Allow-Origin', '*');
+        $this->getHttpResponse()->setHeader('Access-Control-Allow-Origin', 'http://snooker.cechmanek.com');
         $this->getHttpResponse()->setHeader('Access-Control-Allow-Headers', 'Content-Type');
         $this->getHttpResponse()->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     }
@@ -123,5 +130,11 @@ final class GamesPresenter extends Nette\Application\UI\Presenter
             'status' => 1,
             'game' => $game
         ]);
+    }
+
+    public function actionLogin(){
+        $this->user->login("admin", "1234");
+        //$this->user->logout();
+        dump ("neco");
     }
 }
